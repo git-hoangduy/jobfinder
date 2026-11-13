@@ -13,6 +13,7 @@ const sources = {
   linkedin: require('./sources/linkedin'),
 };
 
+const STALE_DAYS = 5;
 const status = { running: false, phase: '', done: 0, total: 0, message: 'Chưa chạy', errors: [] };
 
 const RE_REMOTE = /(remote|tu xa|work from home|wfh|lam viec online|lam online)/;
@@ -158,6 +159,9 @@ async function refresh({ includeLazy = false } = {}) {
     for (const [id, j] of Object.entries(db.jobs)) {
       let reason = null;
       if (!seen.has(id) && !failedSources.has(j.source)) reason = 'Không còn hiển thị trên trang tuyển dụng';
+      // nguồn bị chặn nhiều ngày -> không xác minh được job còn hay không -> bỏ để tránh tin cũ
+      else if (!seen.has(id) && nowD - new Date(j.lastSeen || j.firstSeen) > STALE_DAYS * 864e5)
+        reason = `Không xác minh được quá ${STALE_DAYS} ngày (trang nguồn chặn truy cập)`;
       else if (j.deadline && new Date(j.deadline) < nowD) reason = 'Đã quá hạn nộp hồ sơ';
       if (reason) {
         removed.push({ id, title: j.title, company: j.company, source: j.source, reason, at: now });
@@ -170,12 +174,19 @@ async function refresh({ includeLazy = false } = {}) {
     const need = Object.values(db.jobs).filter((j) => j.needDetail && (includeLazy || !j.lazyDetail) && !j.detailAt);
     Object.assign(status, { phase: 'detail', done: 0, total: need.length, message: `Đang lấy chi tiết ${need.length} việc làm mới...` });
     let sinceSave = 0;
+    const detailFails = {}; // nguồn bị chặn/giới hạn liên tiếp -> ngừng lấy chi tiết nguồn đó trong lượt này
     await pool(need, DETAIL_CONCURRENCY, async (j) => {
+      if ((detailFails[j.source] || 0) >= 3) {
+        status.done++;
+        return;
+      }
       try {
         const d = await fetchDetail(j);
         applyDetail(db, j.id, d, removed, now);
+        detailFails[j.source] = 0;
       } catch (e) {
         j.detailError = e.message;
+        if (/HTTP (403|429)|timeout|Không kết nối/i.test(e.message)) detailFails[j.source] = (detailFails[j.source] || 0) + 1;
       }
       status.done++;
       status.message = `Đang lấy chi tiết (${status.done}/${status.total})...`;

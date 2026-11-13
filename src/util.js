@@ -28,7 +28,7 @@ function curlGet(url) {
 const preferCurl = new Set(); // host đã từng bị 403 -> dùng curl luôn
 
 // Giãn cách request theo từng trang để không bị chặn (HTTP 429)
-const HOST_GAP = { 'www.topcv.vn': 4000, 'itviec.com': 2000, 'www.careerlink.vn': 1500, 'careerviet.vn': 1000 };
+const HOST_GAP = { 'www.topcv.vn': 4000, 'itviec.com': 2000, 'www.careerlink.vn': 1500, 'careerviet.vn': 1000, 'www.linkedin.com': 2500 };
 const nextAt = {};
 async function throttle(host) {
   const gap = HOST_GAP[host] ?? 300;
