@@ -1,0 +1,56 @@
+name: crawl
+
+on:
+  schedule:
+    # Giờ UTC. 0,5,11 UTC = 7h, 12h, 18h giờ Việt Nam
+    - cron: '0 0,5,11 * * *'
+  workflow_dispatch: # nút "Làm mới" trên web gọi vào đây
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: crawl
+  cancel-in-progress: false
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Thu thập việc làm + dựng web
+        run: npm run crawl
+        env:
+          TZ: Asia/Ho_Chi_Minh
+
+      - name: Lưu dữ liệu vào repo (để lần sau biết job nào mới / đã bị gỡ)
+        run: |
+          git config user.name "jobfinder-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/jobs.json
+          git commit -m "Cập nhật dữ liệu việc làm" || echo "Không có thay đổi"
+          git pull --rebase --autostash || true
+          git push
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - id: deploy
+        uses: actions/deploy-pages@v4

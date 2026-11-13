@@ -1,0 +1,123 @@
+:root {
+  --accent: #e11d2e;
+  --text: #1f2328;
+  --muted: #6b7280;
+  --line: #e5e7eb;
+  --bg: #f6f7f9;
+  --card: #fff;
+  --green: #0f9d58;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { font-family: 'Be Vietnam Pro', system-ui, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5; }
+a { color: inherit; }
+[hidden] { display: none !important; }
+.wrap { max-width: 980px; margin: 0 auto; padding: 0 16px; }
+
+/* Top */
+.top { background: #fff; border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 20; }
+.top-row { display: flex; align-items: center; gap: 12px; height: 60px; }
+.brand { font-size: 17px; color: var(--accent); white-space: nowrap; }
+.search { flex: 1; min-width: 0; }
+.search input { width: 100%; height: 38px; border: 1px solid var(--line); border-radius: 8px; padding: 0 12px; font: inherit; background: var(--bg); outline: none; }
+.search input:focus { border-color: var(--accent); background: #fff; }
+.progress { height: 3px; background: #f1f1f1; }
+.progress-bar { height: 100%; width: 0; background: var(--accent); transition: width .4s; }
+.refresh-info { color: var(--muted); font-size: 12px; margin: 10px 0 0; }
+
+.btn { border: 1px solid transparent; border-radius: 8px; padding: 8px 14px; font: inherit; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { filter: brightness(.92); }
+.btn-primary:disabled { opacity: .6; cursor: progress; }
+.btn-ghost { background: #fff; border-color: var(--line); color: var(--text); }
+.btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+/* Tabs nhóm nghề */
+.tabs { display: flex; gap: 6px; overflow-x: auto; padding: 12px 0 4px; scrollbar-width: thin; }
+.tab { border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 5px 12px; font: inherit; font-size: 13px; cursor: pointer; white-space: nowrap; color: var(--text); }
+.tab b { color: var(--muted); font-weight: 500; margin-left: 2px; }
+.tab.on { background: var(--text); color: #fff; border-color: var(--text); }
+.tab.on b { color: #ccc; }
+
+/* Filters */
+.filters { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.chk { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; user-select: none; font-size: 13px; }
+.chk input { accent-color: var(--accent); margin: 0; }
+.grow { flex: 1; }
+select { padding: 6px 8px; border-radius: 8px; border: 1px solid var(--line); font: inherit; font-size: 13px; background: #fff; }
+.summary { color: var(--muted); font-size: 13px; padding: 10px 0 8px; }
+.summary b { color: var(--text); }
+.notice { background: #fff7ed; border: 1px solid #fed7aa; color: #9a3412; border-radius: 8px; padding: 8px 12px; margin-bottom: 10px; font-size: 12px; }
+.notice summary { cursor: pointer; }
+
+/* Danh sách job dạng dòng */
+.list { display: flex; flex-direction: column; gap: 8px; }
+.job { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; display: grid; grid-template-columns: 40px 1fr auto; gap: 12px; cursor: pointer; align-items: start; }
+.job:hover { border-color: #f5a3ab; }
+.job.viewed .title { color: #6d5a8c; }
+.job.is-hidden { opacity: .5; }
+.logo, .logo-ph { width: 40px; height: 40px; border-radius: 8px; flex: none; }
+.logo { object-fit: contain; border: 1px solid var(--line); background: #fff; }
+.logo-ph { display: grid; place-items: center; font-weight: 700; color: #fff; }
+.body { min-width: 0; }
+.title { font-weight: 600; font-size: 15px; line-height: 1.35; margin: 0 0 2px; }
+.sub { color: #4b5563; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sub .salary { color: var(--green); font-weight: 600; }
+.badges { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.badge { border-radius: 5px; padding: 1px 7px; font-size: 11px; font-weight: 600; white-space: nowrap; background: #f3f4f6; color: #4b5563; }
+.b-today { background: #e6f7ee; color: var(--green); }
+.b-new { background: var(--accent); color: #fff; }
+.b-entry { background: #eef2ff; color: #4338ca; }
+.b-remote { background: #e0f2fe; color: #0369a1; }
+.b-urgent { background: #fee2e2; color: #b91c1c; }
+.side { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; font-size: 12px; color: var(--muted); text-align: right; }
+.side .acts { display: flex; gap: 2px; }
+.icon-btn { border: 0; background: transparent; width: 28px; height: 28px; border-radius: 6px; cursor: pointer; color: #9ca3af; font-size: 15px; }
+.icon-btn:hover { background: #f3f4f6; color: var(--text); }
+.icon-btn.on { color: var(--accent); }
+.src { font-size: 11px; font-weight: 600; color: #fff; border-radius: 4px; padding: 0 6px; text-decoration: none; display: inline-block; }
+.srcs { display: flex; gap: 3px; flex-wrap: wrap; justify-content: flex-end; }
+.empty { text-align: center; color: var(--muted); padding: 40px; background: #fff; border-radius: 10px; border: 1px dashed var(--line); }
+
+/* Phân trang */
+.pager { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px; margin: 18px 0; }
+.pager button { min-width: 34px; height: 34px; border: 1px solid var(--line); background: #fff; border-radius: 8px; font: inherit; cursor: pointer; padding: 0 8px; }
+.pager button.on { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+.pager button:disabled { opacity: .4; cursor: default; }
+.pager .dots { padding: 0 4px; color: var(--muted); }
+.pager select { margin-left: 10px; }
+
+.removed { margin: 8px 0 40px; color: var(--muted); font-size: 13px; }
+.removed summary { cursor: pointer; }
+.removed ul { list-style: none; padding: 0; margin: 8px 0 0; max-height: 300px; overflow: auto; }
+.removed li { padding: 5px 0; border-top: 1px solid var(--line); }
+
+/* Modal */
+.modal { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 16px; }
+.modal-backdrop { position: absolute; inset: 0; background: rgba(0, 0, 0, .5); }
+.modal-card { position: relative; background: #fff; border-radius: 12px; width: min(820px, 100%); max-height: calc(100vh - 32px); display: flex; flex-direction: column; overflow: hidden; }
+.modal-x { position: absolute; top: 10px; right: 12px; border: 0; background: #f3f4f6; width: 32px; height: 32px; border-radius: 50%; font-size: 20px; cursor: pointer; z-index: 2; }
+#modalBody { display: flex; flex-direction: column; min-height: 0; flex: 1; }
+.m-head { padding: 18px 20px 12px; border-bottom: 1px solid var(--line); display: flex; gap: 12px; }
+.m-head h2 { margin: 0 36px 2px 0; font-size: 18px; line-height: 1.35; }
+.m-scroll { overflow: auto; padding: 14px 20px; flex: 1; }
+.m-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 8px 16px; margin-bottom: 10px; font-size: 13px; }
+.m-grid small { display: block; color: var(--muted); font-size: 11px; }
+.m-section h3 { font-size: 15px; margin: 16px 0 6px; }
+.m-content { font-size: 14px; line-height: 1.65; color: #333; overflow-wrap: anywhere; }
+.m-content ul, .m-content ol { padding-left: 22px; }
+.m-content p { margin: 5px 0; }
+.m-content h2, .m-content h3, .m-content h4 { font-size: 14px; margin: 12px 0 4px; }
+.m-foot { padding: 12px 20px; border-top: 1px solid var(--line); display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.skeleton { height: 12px; border-radius: 6px; background: linear-gradient(90deg, #eee 25%, #f6f6f6 50%, #eee 75%); background-size: 200% 100%; animation: sk 1.2s infinite; margin: 10px 0; }
+@keyframes sk { to { background-position: -200% 0; } }
+.toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #111; color: #fff; padding: 10px 16px; border-radius: 8px; z-index: 60; max-width: calc(100% - 32px); }
+
+@media (max-width: 640px) {
+  .brand { display: none; }
+  .job { grid-template-columns: 1fr; }
+  .job .logo, .job .logo-ph { display: none; }
+  .side { flex-direction: row; align-items: center; justify-content: space-between; text-align: left; }
+  .sub { white-space: normal; }
+  .grow { display: none; }
+}

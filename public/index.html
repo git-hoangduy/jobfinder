@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JobFinder</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="top">
+    <div class="wrap top-row">
+      <b class="brand">JobFinder</b>
+      <div class="search">
+        <input id="q" type="search" placeholder="Tìm việc, công ty, kỹ năng..." autocomplete="off" />
+      </div>
+      <button class="btn btn-primary" id="refreshBtn" type="button">↻ <span>Làm mới</span></button>
+    </div>
+    <div class="progress" id="progress" hidden><div class="progress-bar" id="progressBar"></div></div>
+  </header>
+
+  <main class="wrap">
+    <div class="refresh-info" id="refreshInfo"></div>
+
+    <nav class="tabs" id="catTabs"></nav>
+
+    <div class="filters">
+      <label class="chk"><input type="checkbox" id="fFit" checked /> Phù hợp với tôi</label>
+      <label class="chk"><input type="checkbox" id="fEntry" /> Không yêu cầu KN</label>
+      <label class="chk"><input type="checkbox" id="fRemote" /> Remote</label>
+      <label class="chk"><input type="checkbox" id="fToday" /> Cập nhật hôm nay</label>
+      <label class="chk"><input type="checkbox" id="fSaved" /> Đã lưu</label>
+      <label class="chk"><input type="checkbox" id="fHidden" /> Đã ẩn</label>
+      <span class="grow"></span>
+      <select id="source" aria-label="Nguồn"></select>
+      <select id="sort" aria-label="Sắp xếp">
+        <option value="fit">Phù hợp nhất</option>
+        <option value="updated">Mới cập nhật</option>
+        <option value="deadline">Hạn nộp gần nhất</option>
+        <option value="found">Mới phát hiện</option>
+      </select>
+    </div>
+
+    <div class="summary" id="summary"></div>
+    <div class="notice" id="errorsBox" hidden></div>
+
+    <div id="list" class="list"></div>
+    <div class="empty" id="empty" hidden>Không có việc làm phù hợp. Thử bỏ bớt bộ lọc.</div>
+
+    <div class="pager" id="pager"></div>
+
+    <details class="removed" id="removedBox">
+      <summary>Job đã loại bỏ gần đây (<span id="removedCount">0</span>)</summary>
+      <ul id="removedList"></ul>
+    </details>
+  </main>
+
+  <div class="modal" id="modal" hidden>
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+      <button class="modal-x" data-close aria-label="Đóng">×</button>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" hidden></div>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

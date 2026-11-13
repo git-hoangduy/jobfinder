@@ -1,0 +1,19 @@
+{
+  "name": "jobfinder",
+  "version": "1.0.0",
+  "description": "Tổng hợp việc làm từ nhiều trang tuyển dụng VN",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "crawl": "node scripts/crawl.js",
+    "build": "node scripts/build-static.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "cheerio": "^1.2.0",
+    "express": "^5.3.0"
+  },
+  "private": true
+}
