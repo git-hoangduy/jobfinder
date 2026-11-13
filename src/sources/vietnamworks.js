@@ -42,11 +42,12 @@ async function list(keyword, { hcmOnly = true } = {}) {
       level: d.jobLevelVI || d.jobLevel || '',
       experience: d.yearsOfExperience > 0 ? `${d.yearsOfExperience} năm` : '',
       expYears: d.yearsOfExperience > 0 ? d.yearsOfExperience : null,
-      // Mô tả trong danh sách có thể bị cắt ngắn -> vẫn lấy chi tiết sau
+      // API chỉ trả mô tả rút gọn; trang chi tiết dựng bằng JS nên không đọc được thêm
       description: d.jobDescription || '',
       requirements: d.jobRequirement || '',
       benefits,
-      needDetail: true,
+      shortDesc: true,
+      needDetail: false,
     };
   });
 }

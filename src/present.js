@@ -23,7 +23,10 @@ function decorate(j) {
     company: j.company,
     logo: j.logo,
     url: j.url,
-    salary: j.salaryDetail && /đăng nhập|thương lượng|thoả thuận|thỏa thuận|cạnh tranh/i.test(j.salary || '') ? j.salaryDetail : j.salary,
+    salary:
+      j.salaryDetail && /đăng nhập|thương lượng|thoả thuận|thỏa thuận|cạnh tranh/i.test(j.salary || '')
+        ? j.salaryDetail
+        : j.salary === 'Không ghi' ? '' : j.salary,
     location: j.location,
     address: j.address,
     tags: j.tags || [],
@@ -39,6 +42,7 @@ function decorate(j) {
     senior,
     entry,
     firstSeen: j.firstSeen,
+    shortDesc: !!j.shortDesc || j.source === 'vietnamworks',
   };
 }
 
@@ -64,7 +68,8 @@ function dedupe(list) {
       map.set(k, { ...j, alsoOn: [] });
       continue;
     }
-    p.alsoOn.push({ source: j.source, url: j.url, id: j.id });
+    // cùng nguồn đăng 2 lần -> chỉ giữ 1 link
+    if (j.source !== p.source && !p.alsoOn.some((a) => a.source === j.source)) p.alsoOn.push({ source: j.source, url: j.url, id: j.id });
     p.categories = [...new Set([...p.categories, ...j.categories])];
     if (!p.deadline && j.deadline) p.deadline = j.deadline;
     if ((j.updatedAt || '') > (p.updatedAt || '')) p.updatedAt = j.updatedAt;

@@ -35,7 +35,7 @@ async function list(keyword, { remote = false } = {}) {
         company: clean(x.find('.base-search-card__subtitle').text()),
         logo: x.find('img').attr('data-delayed-url') || '',
         url: 'https://www.linkedin.com/jobs/view/' + id,
-        salary: clean(x.find('.job-search-card__salary-info').text()) || 'Không ghi',
+        salary: clean(x.find('.job-search-card__salary-info').text()),
         location: clean(x.find('.job-search-card__location').text()),
         workMode: remote ? 'Remote' : '',
         tags: [],

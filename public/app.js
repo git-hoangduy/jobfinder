@@ -118,7 +118,7 @@
     const sub = [
       esc(j.company),
       esc(j.location || ''),
-      `<span class="salary">${esc(j.salary || 'Thương lượng')}</span>`,
+      j.salary ? `<span class="salary">${esc(j.salary)}</span>` : '',
       j.experience ? 'KN: ' + esc(j.experience) : '',
     ].filter(Boolean).join(' · ');
     return `<article class="job ${viewed.has(j.id) ? 'viewed' : ''} ${hidden.has(j.id) ? 'is-hidden' : ''}" data-id="${esc(j.id)}">
@@ -229,7 +229,7 @@
     $('#modal').dataset.id = j.id;
     const dl = daysLeft(j.deadline);
     const grid = [
-      ['Lương', j.salary || 'Thương lượng'],
+      ['Lương', j.salary || 'Không ghi'],
       ['Địa điểm', j.location || '—'],
       ['Hình thức', { remote: 'Remote', hybrid: 'Hybrid', office: 'Tại văn phòng' }[j.workMode] || '—'],
       ['Kinh nghiệm', j.experience || 'Không ghi'],
@@ -246,7 +246,8 @@
       const sec = (t, h) => (h && h.replace(/<[^>]+>/g, '').trim() ? `<div class="m-section"><h3>${t}</h3><div class="m-content">${h}</div></div>` : '');
       const hl = (j.highlights || []).length ? sec('Điểm nổi bật', '<ul>' + j.highlights.map((h) => `<li>${esc(h)}</li>`).join('') + '</ul>') : '';
       body = hl + (sec('Mô tả công việc', d.description) + sec('Yêu cầu', d.requirements) + sec('Quyền lợi', d.benefits) ||
-        '<p style="color:var(--muted)">Trang nguồn không cung cấp mô tả. Bấm nút bên dưới để xem tin gốc.</p>') +
+        '<p style="color:var(--muted)">Chưa lấy được mô tả chi tiết của tin này. Bấm nút bên dưới để xem tin gốc.</p>') +
+        (j.shortDesc ? `<p style="color:var(--muted)">Mô tả rút gọn – bấm "Đến ${esc(srcInfo(j.source).name)}" để xem đầy đủ.</p>` : '') +
         (d.address ? sec('Địa chỉ', esc(d.address)) : '') +
         (d.detailError ? `<p style="color:var(--muted)">Chưa tải được bản đầy đủ (${esc(d.detailError)}).</p>` : '');
     }
