@@ -3,7 +3,8 @@
 // - match: biểu thức so khớp (trên chữ đã bỏ dấu, chữ thường) để giữ job đúng nhóm
 //          useTags=true: so khớp cả tiêu đề + tag kỹ năng; ngược lại chỉ so tiêu đề
 // - exclude: loại job có tiêu đề khớp (tránh nhiễu)
-// - entry: true = nhóm bạn muốn "không yêu cầu kinh nghiệm / có đào tạo"
+// - web: true = việc web (PHP/Frontend): "Phù hợp với tôi" hiện mọi mức kinh nghiệm (trừ Senior/Lead)
+//   các nhóm còn lại: chỉ hiện job không yêu cầu kinh nghiệm hoặc dưới 1 năm
 // - anywhereIfRemote: job ở tỉnh khác vẫn giữ nếu là remote
 // - itviec: các slug kỹ năng trên ITviec (chỉ nhóm IT phần mềm)
 
@@ -11,6 +12,7 @@ const CATEGORIES = [
   {
     id: 'php',
     name: 'Backend PHP / Laravel',
+    web: true,
     color: '#7a6ff0',
     keywords: ['php', 'laravel', 'wordpress', 'backend php', 'php developer'],
     itviec: ['php', 'laravel'],
@@ -23,6 +25,7 @@ const CATEGORIES = [
   {
     id: 'frontend',
     name: 'Frontend (HTML/CSS/JS, Vue, React)',
+    web: true,
     color: '#0ea5e9',
     keywords: ['frontend', 'front end', 'vuejs', 'reactjs', 'javascript', 'html css', 'web developer', 'lập trình web', 'fresher frontend'],
     itviec: ['vuejs', 'reactjs', 'javascript'],

@@ -3,6 +3,7 @@ const { CATEGORIES, SOURCES } = require('./config');
 const { norm, sanitize } = require('./util');
 const { pickSalary } = require('./salary');
 const { isEnglish } = require('./translate');
+const { expFromText } = require('./experience');
 
 const RE_REMOTE = /(remote|tu xa|work from home|wfh|lam viec online|lam online)/;
 const RE_SENIOR = /(senior|\bsr\b|\blead\b|leader|truong nhom|truong phong|pho phong|manager|quan ly|\bhead\b|principal|architect|giam doc|director|chief|\bcto\b|expert|chuyen gia|giam sat)/;
@@ -12,6 +13,17 @@ const RE_ENTRY = /(khong yeu cau kinh nghiem|chua co kinh nghiem|khong can kinh 
 const SOURCE_ORDER = Object.keys(SOURCES);
 
 function decorate(j) {
+  // Không có trường kinh nghiệm -> thử đọc từ mô tả
+  let expYears = j.expYears;
+  let experience = j.experience;
+  if (expYears == null && !experience) {
+    const e = expFromText(j.requirements, j.description);
+    if (e != null) {
+      expYears = e;
+      experience = `${e} năm (theo mô tả)`;
+    }
+  }
+  j = { ...j, expYears, experience };
   const title = norm(j.title);
   const textAll = norm([j.title, j.experience, j.level, j.description, j.requirements].join(' ').replace(/<[^>]+>/g, ' '));
   const senior = RE_SENIOR.test(title) || /(truong|quan ly|giam doc|manager)/.test(norm(j.level));
@@ -97,7 +109,7 @@ function buildPayload(db, { withDetail = false } = {}) {
     jobs,
     lastRefresh: db.lastRefresh,
     removed: (db.removed || []).slice(0, 100),
-    categories: CATEGORIES.map(({ id, name, color, entry }) => ({ id, name, color, entry })),
+    categories: CATEGORIES.map(({ id, name, color, entry, web }) => ({ id, name, color, entry, web: !!web })),
     sources: SOURCES,
   };
 }

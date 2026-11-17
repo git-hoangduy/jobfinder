@@ -38,11 +38,15 @@
   const isNewFound = (j) => state.lastRefresh?.previousAt && j.firstSeen && j.firstSeen >= state.lastRefresh.startedAt;
 
   // ---- Phù hợp với tôi ----
+  // - Việc web (PHP, Frontend): mọi mức kinh nghiệm, trừ Senior/Lead/Quản lý
+  // - Các nhóm khác: chỉ job không yêu cầu kinh nghiệm hoặc dưới 1 năm
+  //   (job không ghi kinh nghiệm vẫn hiện, có badge "Chưa rõ KN" để tự xem)
+  const isWeb = (j) => j.categories.some((c) => catById(c).web);
+  const expUnknown = (j) => !isWeb(j) && !j.entry && j.expYears == null;
   function fits(j) {
     if (j.senior) return false;
-    const onlyEntryCats = j.categories.every((c) => catById(c).entry);
-    if (onlyEntryCats && j.expYears != null && j.expYears >= 2 && !j.entry) return false;
-    return true;
+    if (isWeb(j) || j.entry || j.expYears == null) return true;
+    return j.expYears < 1;
   }
   function score(j) {
     let s = 0;
@@ -53,6 +57,7 @@
     else if (j.workMode === 'hybrid') s += 8;
     if (j.categories.includes('php')) s += 15;
     if (j.senior) s -= 40;
+    if (expUnknown(j)) s -= 10; // đẩy job chưa rõ kinh nghiệm xuống dưới
     s -= Math.min(j.updatedAt ? (Date.now() - new Date(j.updatedAt)) / 864e5 : 30, 30);
     return s;
   }
@@ -103,6 +108,7 @@
     if (j.workMode === 'remote') b.push('<span class="badge b-remote">Remote</span>');
     if (j.workMode === 'hybrid') b.push('<span class="badge">Hybrid</span>');
     if (j.senior) b.push('<span class="badge">Senior/Lead</span>');
+    if (expUnknown(j)) b.push('<span class="badge" title="Tin không ghi số năm kinh nghiệm">Chưa rõ KN</span>');
     const d = daysLeft(j.deadline);
     if (withDeadline && d != null) b.push(`<span class="badge ${d <= 3 ? 'b-urgent' : ''}">Còn ${Math.max(d, 0)} ngày</span>`);
     return b.join('');
