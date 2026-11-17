@@ -1,6 +1,8 @@
 // Chuyển dữ liệu thô trong kho thành dữ liệu hiển thị (dùng chung cho server và bản web tĩnh)
 const { CATEGORIES, SOURCES } = require('./config');
 const { norm, sanitize } = require('./util');
+const { pickSalary } = require('./salary');
+const { isEnglish } = require('./translate');
 
 const RE_REMOTE = /(remote|tu xa|work from home|wfh|lam viec online|lam online)/;
 const RE_SENIOR = /(senior|\bsr\b|\blead\b|leader|truong nhom|truong phong|pho phong|manager|quan ly|\bhead\b|principal|architect|giam doc|director|chief|\bcto\b|expert|chuyen gia|giam sat)/;
@@ -23,10 +25,7 @@ function decorate(j) {
     company: j.company,
     logo: j.logo,
     url: j.url,
-    salary:
-      j.salaryDetail && /đăng nhập|thương lượng|thoả thuận|thỏa thuận|cạnh tranh/i.test(j.salary || '')
-        ? j.salaryDetail
-        : j.salary === 'Không ghi' ? '' : j.salary,
+    ...pickSalary(j), // salary + salaryNote ("theo mô tả"...)
     location: j.location,
     address: j.address,
     tags: j.tags || [],
@@ -43,6 +42,7 @@ function decorate(j) {
     entry,
     firstSeen: j.firstSeen,
     shortDesc: !!j.shortDesc || j.source === 'vietnamworks',
+    lang: isEnglish([j.description, j.requirements].join(' ')) ? 'en' : 'vi',
   };
 }
 
@@ -52,6 +52,10 @@ const detailOf = (j) => ({
   requirements: sanitize(j.requirements),
   benefits: sanitize(j.benefits),
   address: j.address || '',
+  // bản dịch tiếng Việt (nếu đã dịch lúc thu thập)
+  trans: j.trans
+    ? { description: sanitize(j.trans.description), requirements: sanitize(j.trans.requirements), benefits: sanitize(j.trans.benefits) }
+    : null,
 });
 
 // Gộp job trùng (cùng tiêu đề + công ty) đăng trên nhiều trang

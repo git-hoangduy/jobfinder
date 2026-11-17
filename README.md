@@ -36,6 +36,11 @@ Mô tả và hạn nộp hồ sơ được đọc từ dữ liệu chuẩn `JobP
 
 Danh sách job đã loại bỏ nằm ở cuối trang: "Job đã loại bỏ gần đây".
 
+## Dịch & lương
+
+- Job có mô tả tiếng Anh có thêm tab **Tiếng Việt** trong popup. Bản dịch được làm sẵn lúc thu thập (tối đa 40 job mỗi lượt). Nếu chưa có bản dịch sẵn: Chrome trên máy tính sẽ dịch ngay trên trình duyệt; các trình duyệt khác có link mở bằng Google Dịch.
+- Lương được chọn theo thứ tự: lương ở danh sách → lương trong dữ liệu chi tiết → lương ghi trong tiêu đề hoặc mô tả (đánh dấu `*` hoặc ghi "theo mô tả").
+
 ## Badge
 
 - **Mới cập nhật hôm nay**: trang nguồn đăng hoặc làm mới tin trong hôm nay.
@@ -54,7 +59,7 @@ Danh sách job đã loại bỏ nằm ở cuối trang: "Job đã loại bỏ g�
 
 Web luôn sống, mở ở đâu cũng được, không cần bật máy tính:
 
-- `.github/workflows/crawl.yml` tự thu thập lúc **7h, 12h và 18h** giờ VN. Kết quả lưu vào `data/jobs.json` trong repo, và web tĩnh được dựng ra rồi đăng lên GitHub Pages.
+- `.github/workflows/crawl.yml` tự thu thập khoảng **6h30, 11h30 và 17h30** giờ VN (GitHub thường chạy trễ thêm 10–60 phút). Kết quả lưu vào `data/jobs.json` trong repo, và web tĩnh được dựng ra rồi đăng lên GitHub Pages.
 - Nút **Làm mới** trên web gọi GitHub chạy workflow ngay, mất khoảng 6–10 phút. Lần đầu bấm, web sẽ hỏi một **fine-grained token**: chỉ cấp cho repo này, quyền *Actions: Read and write*. Token chỉ lưu trong trình duyệt của thiết bị đó.
 - Muốn đổi giờ chạy thì sửa dòng `cron` trong workflow. Giờ ở đó là giờ UTC, tức giờ VN trừ 7.
 

@@ -2,8 +2,9 @@ name: crawl
 
 on:
   schedule:
-    # Giờ UTC. 0,5,11 UTC = 7h, 12h, 18h giờ Việt Nam
-    - cron: '0 0,5,11 * * *'
+    # Giờ UTC (= giờ VN - 7). Tránh phút 0 và 0h UTC vì GitHub hay bỏ/trễ các lịch giờ chẵn.
+    # 23:23, 4:23, 10:23 UTC = 6:23, 11:23, 17:23 giờ VN (thực tế thường trễ thêm 10-60 phút)
+    - cron: '23 23,4,10 * * *'
   workflow_dispatch: # nút "Làm mới" trên web gọi vào đây
 
 permissions:

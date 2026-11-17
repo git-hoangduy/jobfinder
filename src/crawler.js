@@ -14,6 +14,8 @@ const sources = {
 };
 
 const STALE_DAYS = 5;
+const MAX_TRANSLATE = 40; // số job dịch tối đa mỗi lượt
+const { isEnglish, translateJob } = require('./translate');
 const status = { running: false, phase: '', done: 0, total: 0, message: 'Chưa chạy', errors: [] };
 
 const RE_REMOTE = /(remote|tu xa|work from home|wfh|lam viec online|lam online)/;
@@ -95,7 +97,7 @@ function merge(old, job, now) {
 }
 
 // includeLazy: lấy chi tiết cho cả nguồn "lazy" (LinkedIn) – dùng cho bản web tĩnh không có server
-async function refresh({ includeLazy = false } = {}) {
+async function refresh({ includeLazy = false, translate = true } = {}) {
   if (status.running) return status;
   Object.assign(status, { running: true, phase: 'list', done: 0, total: 0, message: 'Đang thu thập danh sách việc làm...', errors: [], startedAt: new Date().toISOString() });
   const db = store.load();
@@ -111,6 +113,7 @@ async function refresh({ includeLazy = false } = {}) {
     await Promise.all(
       groups.map(async (g) => {
         let failStreak = 0;
+        let got = 0;
         for (const fn of g.fns) {
           // Nguồn lỗi liên tiếp 3 lần -> tạm bỏ qua trong lượt này (job cũ của nguồn vẫn được giữ)
           if (failStreak >= 3) {
@@ -118,7 +121,9 @@ async function refresh({ includeLazy = false } = {}) {
             continue;
           }
           try {
-            raw.push(...(await fn()));
+            const r = await fn();
+            raw.push(...r);
+            got += r.length;
             failStreak = 0;
           } catch (e) {
             failStreak++;
@@ -131,6 +136,12 @@ async function refresh({ includeLazy = false } = {}) {
           status.done++;
           status.message = `Đang đọc danh sách (${status.done}/${status.total})...`;
           await sleep(400);
+        }
+        // Không báo lỗi nhưng không đọc được job nào (thường là trang chặn bot trả về trang trống)
+        // -> coi như lỗi để KHÔNG xoá nhầm job cũ của nguồn này
+        if (!got && !failedSources.has(g.src) && Object.values(db.jobs).some((j) => j.source === g.src)) {
+          failedSources.add(g.src);
+          status.errors.push(`${SOURCES[g.src].name}: không đọc được job nào (có thể bị chặn) – giữ job cũ`);
         }
       })
     );
@@ -197,6 +208,26 @@ async function refresh({ includeLazy = false } = {}) {
       await sleep(250);
     });
 
+    // 5) Dịch mô tả tiếng Anh sang tiếng Việt (giới hạn mỗi lượt, job mới trước; bị giới hạn thì để lần sau)
+    if (translate) {
+      const toTr = Object.values(db.jobs)
+        .filter((j) => !j.transAt && isEnglish([j.description, j.requirements].join(' ')))
+        .sort((a, b) => (b.firstSeen || '').localeCompare(a.firstSeen || ''))
+        .slice(0, MAX_TRANSLATE);
+      Object.assign(status, { phase: 'translate', done: 0, total: toTr.length, message: `Đang dịch ${toTr.length} mô tả tiếng Anh...` });
+      for (const j of toTr) {
+        try {
+          j.trans = await translateJob(j);
+          j.transAt = new Date().toISOString();
+        } catch (e) {
+          status.errors.push(`Dịch tiếng Việt: ${e.message} – còn lại sẽ dịch ở lần sau`);
+          break;
+        }
+        status.done++;
+        status.message = `Đang dịch mô tả (${status.done}/${status.total})...`;
+      }
+    }
+
     db.removed = [...removed, ...(db.removed || [])].slice(0, 300);
     db.lastRefresh = {
       startedAt: status.startedAt,
@@ -238,7 +269,7 @@ function applyDetail(db, id, d, removedList, now = new Date().toISOString()) {
   if (d.deadline && !(j.source === 'vietnamworks' && j.deadline)) j.deadline = d.deadline;
   if (d.postedAt && !j.postedAt) j.postedAt = d.postedAt;
   if (d.address && !j.address) j.address = d.address;
-  if (d.salaryDetail && /đăng nhập|thương lượng|thoả thuận|thỏa thuận|cạnh tranh/i.test(j.salary || '')) j.salaryDetail = d.salaryDetail;
+  if (d.salaryDetail) j.salaryDetail = d.salaryDetail; // pickSalary() sẽ chọn mức cụ thể nhất
   if (d.expYears != null && j.expYears == null) j.expYears = d.expYears;
   if (d.level && !j.level) j.level = d.level;
   if (d.workMode === 'Remote') j.workModeNorm = 'remote';

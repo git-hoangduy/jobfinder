@@ -118,7 +118,7 @@
     const sub = [
       esc(j.company),
       esc(j.location || ''),
-      j.salary ? `<span class="salary">${esc(j.salary)}</span>` : '',
+      j.salary ? `<span class="salary" title="${esc(j.salaryNote || '')}">${esc(j.salary)}${j.salaryNote ? '<small> *</small>' : ''}</span>` : '',
       j.experience ? 'KN: ' + esc(j.experience) : '',
     ].filter(Boolean).join(' · ');
     return `<article class="job ${viewed.has(j.id) ? 'viewed' : ''} ${hidden.has(j.id) ? 'is-hidden' : ''}" data-id="${esc(j.id)}">
@@ -218,18 +218,65 @@
         render();
         return;
       }
-      Object.assign(j, { deadline: d.deadline || j.deadline, salary: d.salary || j.salary, experience: d.experience || j.experience, level: d.level || j.level });
+      Object.assign(j, { deadline: d.deadline || j.deadline, salary: d.salary || j.salary, salaryNote: d.salary ? d.salaryNote : j.salaryNote, experience: d.experience || j.experience, level: d.level || j.level });
       paintModal(j, d);
     } catch (e) {
       paintModal(j, { error: e.message });
     }
   }
 
+  const hasText = (h) => h && h.replace(/<[^>]+>/g, '').trim();
+  const sec = (t, h) => (hasText(h) ? `<div class="m-section"><h3>${t}</h3><div class="m-content">${h}</div></div>` : '');
+  const sections = (x) => sec('Mô tả công việc', x.description) + sec('Yêu cầu', x.requirements) + sec('Quyền lợi', x.benefits);
+  let modalJob = null;
+  let modalDetail = null;
+
+  // Tab "Tiếng Việt": bản dịch lưu sẵn -> dịch trên trình duyệt (Chrome) -> link Google Translate
+  async function showVietnamese() {
+    const pane = $('#tabVi');
+    if (!pane || pane.dataset.done) return;
+    const j = modalJob, d = modalDetail || {};
+    const gLink = `<p style="color:var(--muted);font-size:13px">Bản dịch tự động, có thể chưa chính xác. Xem thêm: <a href="https://translate.google.com/translate?sl=auto&tl=vi&u=${encodeURIComponent(safeUrl(j.url))}" target="_blank" rel="noopener">mở trang gốc bằng Google Dịch ↗</a></p>`;
+    if (d.trans && (hasText(d.trans.description) || hasText(d.trans.requirements))) {
+      pane.innerHTML = sections({ ...d, ...Object.fromEntries(Object.entries(d.trans).filter(([, v]) => hasText(v))) }) + gLink;
+      pane.dataset.done = 1;
+      return;
+    }
+    if ('Translator' in self) {
+      pane.innerHTML = '<p style="color:var(--muted)">Đang dịch trên trình duyệt...</p>' + gLink;
+      // quá thời gian (vd không tải được gói dịch) -> chuyển sang link Google Dịch
+      const timeout = (p, ms) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
+      try {
+        const opts = { sourceLanguage: 'en', targetLanguage: 'vi' };
+        if ((await timeout(Translator.availability(opts), 5000)) === 'unavailable') throw new Error('unavailable');
+        const tr = await timeout(Translator.create({
+          ...opts,
+          monitor(m) { m.addEventListener('downloadprogress', (e) => { pane.firstElementChild && (pane.firstElementChild.textContent = `Đang tải gói dịch ${Math.round(e.loaded * 100)}%...`); }); },
+        }), 60000);
+        const box = document.createElement('div');
+        box.innerHTML = sections(d);
+        const walker = document.createTreeWalker(box, NodeFilter.SHOW_TEXT);
+        const nodes = [];
+        while (walker.nextNode()) if (/[a-z]{2}/i.test(walker.currentNode.data)) nodes.push(walker.currentNode);
+        for (const n of nodes) n.data = await timeout(tr.translate(n.data), 15000);
+        if ($('#modal').dataset.id !== j.id) return;
+        box.querySelectorAll('.m-section h3').forEach((h, i) => (h.textContent = ['Mô tả công việc', 'Yêu cầu', 'Quyền lợi'][i] || h.textContent));
+        pane.innerHTML = box.innerHTML + gLink;
+        pane.dataset.done = 1;
+        return;
+      } catch { /* chuyển sang link Google */ }
+    }
+    pane.innerHTML = `<div class="notice">Tin này chưa có bản dịch sẵn (sẽ được dịch ở lần thu thập sau).</div>
+      <a class="btn btn-primary" href="https://translate.google.com/translate?sl=auto&tl=vi&u=${encodeURIComponent(safeUrl(j.url))}" target="_blank" rel="noopener">Mở bản dịch Google Dịch ↗</a>`;
+  }
+
   function paintModal(j, d) {
     $('#modal').dataset.id = j.id;
+    modalJob = j;
+    modalDetail = d;
     const dl = daysLeft(j.deadline);
     const grid = [
-      ['Lương', j.salary || 'Không ghi'],
+      ['Lương', j.salary ? j.salary + (j.salaryNote ? ` (${j.salaryNote})` : '') : 'Không ghi'],
       ['Địa điểm', j.location || '—'],
       ['Hình thức', { remote: 'Remote', hybrid: 'Hybrid', office: 'Tại văn phòng' }[j.workMode] || '—'],
       ['Kinh nghiệm', j.experience || 'Không ghi'],
@@ -243,13 +290,17 @@
     else if (d.gone) body = `<div class="notice">Tin không còn khả dụng: <b>${esc(d.reason)}</b>. Đã loại khỏi danh sách.</div>`;
     else if (d.error) body = `<div class="notice">Không tải được mô tả (${esc(d.error)}). Hãy mở trang gốc.</div>`;
     else {
-      const sec = (t, h) => (h && h.replace(/<[^>]+>/g, '').trim() ? `<div class="m-section"><h3>${t}</h3><div class="m-content">${h}</div></div>` : '');
       const hl = (j.highlights || []).length ? sec('Điểm nổi bật', '<ul>' + j.highlights.map((h) => `<li>${esc(h)}</li>`).join('') + '</ul>') : '';
-      body = hl + (sec('Mô tả công việc', d.description) + sec('Yêu cầu', d.requirements) + sec('Quyền lợi', d.benefits) ||
+      const orig = hl + (sections(d) ||
         '<p style="color:var(--muted)">Chưa lấy được mô tả chi tiết của tin này. Bấm nút bên dưới để xem tin gốc.</p>') +
-        (j.shortDesc ? `<p style="color:var(--muted)">Mô tả rút gọn – bấm "Đến ${esc(srcInfo(j.source).name)}" để xem đầy đủ.</p>` : '') +
-        (d.address ? sec('Địa chỉ', esc(d.address)) : '') +
+        (j.shortDesc ? `<p style="color:var(--muted)">Mô tả rút gọn – bấm "Đến ${esc(srcInfo(j.source).name)}" để xem đầy đủ.</p>` : '');
+      const extra = (d.address ? sec('Địa chỉ', esc(d.address)) : '') +
         (d.detailError ? `<p style="color:var(--muted)">Chưa tải được bản đầy đủ (${esc(d.detailError)}).</p>` : '');
+      const isEn = (d.lang || j.lang) === 'en' && hasText(sections(d));
+      body = isEn
+        ? `<div class="m-tabs"><button type="button" data-tab="orig" class="on">Bản gốc (English)</button><button type="button" data-tab="vi">Tiếng Việt</button></div>
+           <div id="tabOrig">${orig}</div><div id="tabVi" hidden></div>${extra}`
+        : orig + extra;
     }
     const links = [{ source: j.source, url: j.url }, ...(j.alsoOn || [])]
       .map((s, i) => `<a class="btn ${i ? 'btn-ghost' : 'btn-primary'}" href="${esc(safeUrl(s.url))}" target="_blank" rel="noopener">Đến ${esc(srcInfo(s.source).name)} ↗</a>`)
@@ -287,7 +338,7 @@
       const s = await fetch('/api/status').then((r) => r.json()).catch(() => null);
       if (!s) return;
       const pct = s.total ? (s.done / s.total) * 100 : 3;
-      $('#progressBar').style.width = (s.phase === 'detail' ? 50 + pct / 2 : pct / 2) + '%';
+      $('#progressBar').style.width = ({ detail: 50 + pct * 0.4, translate: 90 + pct * 0.1 }[s.phase] ?? pct / 2) + '%';
       $('#refreshInfo').textContent = s.message;
       if (!s.running) {
         clearInterval(polling);
@@ -459,6 +510,15 @@
 
   $('#modal').addEventListener('click', (e) => {
     if (e.target.closest('[data-close]')) return closeModal();
+    const tab = e.target.closest('[data-tab]');
+    if (tab) {
+      const vi = tab.dataset.tab === 'vi';
+      document.querySelectorAll('.m-tabs button').forEach((b) => b.classList.toggle('on', b === tab));
+      $('#tabOrig').hidden = vi;
+      $('#tabVi').hidden = !vi;
+      if (vi) showVietnamese();
+      return;
+    }
     if (e.target.closest('[data-act="save-modal"]')) {
       const id = $('#modal').dataset.id;
       saved.has(id) ? saved.delete(id) : saved.add(id);
